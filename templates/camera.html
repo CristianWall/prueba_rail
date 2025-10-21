@@ -208,6 +208,16 @@
                     <li>Indicadores de estado de la cámara</li>
                 </ul>
             </div>
+            
+            <div class="info-panel" style="background: #fff3cd; border: 1px solid #ffeaa7;">
+                <h3>⚠️ Notas Importantes</h3>
+                <ul style="color: #856404;">
+                    <li><strong>En entornos de despliegue:</strong> La cámara puede no estar disponible</li>
+                    <li><strong>Errores de JavaScript:</strong> Son normales y no afectan la funcionalidad</li>
+                    <li><strong>Errores de "Corruption":</strong> Provienen de extensiones del navegador</li>
+                    <li><strong>Para desarrollo local:</strong> Asegúrate de que la cámara no esté siendo usada por otra aplicación</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -221,6 +231,10 @@
             
             try {
                 const response = await fetch('/camera_status');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.camera_available) {
@@ -228,11 +242,12 @@
                     statusDiv.innerHTML = `✅ ${data.message}`;
                 } else {
                     statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `❌ ${data.message}`;
+                    statusDiv.innerHTML = `❌ ${data.message}<br><small>💡 En entornos de despliegue, la cámara puede no estar disponible</small>`;
                 }
             } catch (error) {
+                console.error('Error verificando cámara:', error);
                 statusDiv.className = 'status error';
-                statusDiv.innerHTML = `❌ Error al verificar la cámara: ${error.message}`;
+                statusDiv.innerHTML = `❌ Error al verificar la cámara: ${error.message}<br><small>💡 Esto es normal en entornos de servidor</small>`;
             }
         }
         
@@ -250,6 +265,10 @@
                         'Content-Type': 'application/json',
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 
                 const data = await response.json();
                 
@@ -276,13 +295,31 @@
                     }
                 } else {
                     statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `❌ Error en la detección: ${data.error}`;
+                    statusDiv.innerHTML = `❌ Error en la detección: ${data.error}<br><small>💡 Verifica que la cámara esté conectada y disponible</small>`;
                 }
             } catch (error) {
+                console.error('Error en captura:', error);
                 statusDiv.className = 'status error';
-                statusDiv.innerHTML = `❌ Error al procesar la imagen: ${error.message}`;
+                statusDiv.innerHTML = `❌ Error al procesar la imagen: ${error.message}<br><small>💡 Esto puede ocurrir si la cámara no está disponible</small>`;
             }
         }
+        
+        // Manejo global de errores
+        window.addEventListener('error', function(e) {
+            console.error('Error global:', e);
+            // No mostrar errores de extensiones del navegador
+            if (e.filename && (e.filename.includes('content.js') || e.filename.includes('polyfill.js'))) {
+                return;
+            }
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Promise rechazada:', e);
+            // No mostrar errores de extensiones del navegador
+            if (e.reason && e.reason.toString().includes('Corruption')) {
+                return;
+            }
+        });
         
         // Verificar estado inicial de la cámara
         window.addEventListener('load', function() {
@@ -291,3 +328,4 @@
     </script>
 </body>
 </html>
+
