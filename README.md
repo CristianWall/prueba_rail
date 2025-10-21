@@ -42,10 +42,14 @@ prueba_despliegue/
 
 ### Requisitos
 
-- Python 3.8+
-- PyTorch 2.4.0
-- Ultralytics YOLO 8.3.0
+- Python 3.11+ (configurado para Railway)
+- PyTorch 2.5.0+
+- Ultralytics YOLO 8.3.0+
 - OpenCV
 - Flask
+
+### Compatibilidad de Versiones
+
+La aplicación está configurada para usar Python 3.11 en Railway para asegurar compatibilidad con PyTorch y Ultralytics. Si experimentas problemas con las versiones flexibles en `requirements.txt`, puedes usar `requirements-stable.txt` que contiene versiones específicas probadas.
 
 La aplicación funciona tanto con cámara como sin ella, adaptándose automáticamente al entorno.
