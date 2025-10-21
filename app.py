@@ -36,15 +36,18 @@ def init_camera():
     """Inicializar la cámara"""
     global camera
     try:
+        # En Railway, la cámara puede no estar disponible
         camera = cv2.VideoCapture(0)
         if camera.isOpened():
             print("✅ Cámara inicializada correctamente")
             return True
         else:
-            print("❌ No se pudo acceder a la cámara")
+            print("⚠️  Cámara no disponible (normal en Railway)")
+            camera = None
             return False
     except Exception as e:
-        print(f"❌ Error inicializando la cámara: {e}")
+        print(f"⚠️  Cámara no disponible: {e}")
+        camera = None
         return False
 
 def detect_vests(frame):
@@ -219,21 +222,23 @@ def health():
         'timestamp': time.time()
     })
 
+# Inicializar modelo y cámara al importar
+print("🚀 Iniciando aplicación de detección de chalecos...")
+
+# Cargar modelo
+if load_model():
+    print("✅ Modelo de detección de chalecos cargado")
+else:
+    print("⚠️  Modelo no disponible - la aplicación funcionará sin detección")
+
+# Inicializar cámara
+if init_camera():
+    print("✅ Cámara inicializada")
+else:
+    print("⚠️  Cámara no disponible - la aplicación funcionará sin cámara")
+
 # Inicializar modelo y cámara al arrancar
 if __name__ == "__main__":
-    print("🚀 Iniciando aplicación de detección de chalecos...")
-    
-    # Cargar modelo
-    if load_model():
-        print("✅ Modelo de detección de chalecos cargado")
-    else:
-        print("⚠️  Modelo no disponible - la aplicación funcionará sin detección")
-    
-    # Inicializar cámara
-    if init_camera():
-        print("✅ Cámara inicializada")
-    else:
-        print("⚠️  Cámara no disponible - la aplicación funcionará sin cámara")
-    
     port = int(os.environ.get("PORT", 5000))
+    print(f"🌐 Iniciando servidor en puerto {port}")
     app.run(host="0.0.0.0", port=port, debug=False)

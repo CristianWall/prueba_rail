@@ -1,0 +1,23 @@
+# Dependencias optimizadas para Railway
+Flask==3.1.0
+gunicorn==23.0.0
+Werkzeug==3.1.3
+Jinja2==3.1.5
+MarkupSafe==3.0.2
+itsdangerous==2.2.0
+click==8.1.8
+blinker==1.9.0
+
+# Dependencias de visión por computadora (versiones ligeras)
+opencv-python-headless==4.10.0.84
+numpy==1.24.3
+Pillow==10.0.0
+
+# Dependencias para YOLO (versiones compatibles con Railway)
+ultralytics==8.0.196
+torch==2.0.1
+torchvision==0.15.2
+
+# Dependencias adicionales
+colorama==0.4.6
+packaging==24.2
