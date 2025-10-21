@@ -11,8 +11,7 @@ from PIL import Image
 
 app = Flask(__name__)
 
-# Cargar el modelo YOLO entrenado
-model_path = os.path.join('modelo_entrenado', 'chaleco_detection', 'weights', 'best.pt')
+# Variables globales
 model = None
 camera = None
 camera_lock = threading.Lock()
@@ -21,11 +20,8 @@ def load_model():
     """Cargar el modelo YOLO de detección de chalecos"""
     global model
     try:
+        model_path = os.path.join('modelo_entrenado', 'chaleco_detection', 'weights', 'best.pt')
         if os.path.exists(model_path):
-            # Configurar torch para cargar el modelo de manera segura
-            import torch
-            torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
-            
             model = YOLO(model_path)
             print(f"✅ Modelo cargado exitosamente desde: {model_path}")
             return True
@@ -34,29 +30,18 @@ def load_model():
             return False
     except Exception as e:
         print(f"❌ Error cargando el modelo: {e}")
-        print("⚠️  Intentando cargar modelo con configuración alternativa...")
-        try:
-            # Intentar cargar con configuración alternativa
-            import torch
-            torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
-            model = YOLO(model_path)
-            print(f"✅ Modelo cargado con configuración alternativa")
-            return True
-        except Exception as e2:
-            print(f"❌ Error en configuración alternativa: {e2}")
-            return False
+        return False
 
 def init_camera():
     """Inicializar la cámara"""
     global camera
     try:
-        # En Railway, la cámara puede no estar disponible
         camera = cv2.VideoCapture(0)
         if camera.isOpened():
             print("✅ Cámara inicializada correctamente")
             return True
         else:
-            print("⚠️  Cámara no disponible (normal en Railway)")
+            print("⚠️  Cámara no disponible")
             camera = None
             return False
     except Exception as e:
@@ -70,20 +55,16 @@ def detect_vests(frame):
         return frame, []
     
     try:
-        # Realizar detección
-        results = model(frame, conf=0.5)  # Umbral de confianza 0.5
-        
+        results = model(frame, conf=0.5)
         detections = []
+        
         for result in results:
             boxes = result.boxes
             if boxes is not None:
                 for box in boxes:
-                    # Obtener coordenadas y confianza
                     x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
                     confidence = box.conf[0].cpu().numpy()
                     class_id = int(box.cls[0].cpu().numpy())
-                    
-                    # Obtener nombre de la clase
                     class_name = model.names[class_id]
                     
                     # Dibujar bounding box
@@ -152,6 +133,15 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route("/health")
+def health():
+    """Endpoint de salud para Railway"""
+    return jsonify({
+        'status': 'healthy',
+        'model': 'loaded' if model is not None else 'not_loaded',
+        'camera': 'available' if camera is not None and camera.isOpened() else 'not_available'
+    })
+
 @app.route("/camera_status")
 def camera_status():
     """Verificar estado de la cámara"""
@@ -184,7 +174,6 @@ def detect_vest():
                 'error': 'Modelo no cargado'
             })
         
-        # Obtener imagen del request
         if 'image' not in request.files:
             return jsonify({
                 'success': False,
@@ -223,17 +212,6 @@ def detect_vest():
             'error': str(e)
         })
 
-
-# Configurar entorno para Railway
-try:
-    from railway_fix import configure_environment, fix_torch_loading, optimize_for_railway
-    configure_environment()
-    fix_torch_loading()
-    optimize_for_railway()
-    print("✅ Configuración de Railway aplicada")
-except Exception as e:
-    print(f"⚠️  Configuración de Railway no disponible: {e}")
-
 # Inicializar modelo y cámara al importar
 print("🚀 Iniciando aplicación de detección de chalecos...")
 
@@ -249,7 +227,6 @@ if init_camera():
 else:
     print("⚠️  Cámara no disponible - la aplicación funcionará sin cámara")
 
-# Inicializar modelo y cámara al arrancar
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"🌐 Iniciando servidor en puerto {port}")
