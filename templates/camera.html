@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Caras en Tiempo Real</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .camera-section {
+            padding: 30px;
+        }
+        
+        .video-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        #video-stream {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .camera-section {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 Detección de Caras en Tiempo Real</h1>
+            <p>Usando OpenCV y Flask</p>
+        </div>
+        
+        <div class="camera-section">
+            <div class="video-container">
+                <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Stream de video">
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="checkCameraStatus()">🔍 Verificar Cámara</button>
+                <button class="btn btn-success" onclick="captureAndDetect()">📸 Capturar y Detectar</button>
+                <a href="/" class="btn btn-secondary">🏠 Volver al Inicio</a>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+            
+            <div class="info-panel">
+                <h3>🚀 Funcionalidades</h3>
+                <ul class="feature-list">
+                    <li>Detección de caras en tiempo real</li>
+                    <li>Stream de video en vivo</li>
+                    <li>Captura y análisis de imágenes</li>
+                    <li>Interfaz responsive y moderna</li>
+                    <li>Indicadores de estado de la cámara</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar estado de la cámara
+        async function checkCameraStatus() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.innerHTML = '<div class="loading">🔍 Verificando estado de la cámara...</div>';
+            
+            try {
+                const response = await fetch('/camera_status');
+                const data = await response.json();
+                
+                if (data.camera_available) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `✅ ${data.message}`;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `❌ ${data.message}`;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ Error al verificar la cámara: ${error.message}`;
+            }
+        }
+        
+        // Capturar y detectar caras
+        async function captureAndDetect() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.innerHTML = '<div class="loading">📸 Capturando imagen y detectando caras...</div>';
+            
+            try {
+                const response = await fetch('/detect_face', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `✅ Detección completada: ${data.face_count} cara(s) encontrada(s)`;
+                    
+                    // Mostrar imagen con detecciones si hay caras
+                    if (data.face_count > 0 && data.image) {
+                        const img = document.createElement('img');
+                        img.src = 'data:image/jpeg;base64,' + data.image;
+                        img.style.maxWidth = '100%';
+                        img.style.borderRadius = '10px';
+                        img.style.marginTop = '10px';
+                        img.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+                        
+                        // Limpiar imagen anterior si existe
+                        const existingImg = statusDiv.querySelector('img');
+                        if (existingImg) {
+                            existingImg.remove();
+                        }
+                        
+                        statusDiv.appendChild(img);
+                    }
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `❌ Error en la detección: ${data.error}`;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ Error al procesar la imagen: ${error.message}`;
+            }
+        }
+        
+        // Verificar estado inicial de la cámara
+        window.addEventListener('load', function() {
+            setTimeout(checkCameraStatus, 1000);
+        });
+    </script>
+</body>
+</html>

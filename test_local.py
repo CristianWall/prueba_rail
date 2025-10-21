@@ -46,6 +46,21 @@ def test_app():
         else:
             print(f"❌ Error en endpoint de salud: {response.status_code}")
             
+        print("🔍 Probando página de cámara...")
+        response = requests.get(f"{base_url}/camera", timeout=10)
+        if response.status_code == 200:
+            print("✅ Página de cámara funcionando correctamente")
+        else:
+            print(f"❌ Error en página de cámara: {response.status_code}")
+            
+        print("🔍 Probando estado de cámara...")
+        response = requests.get(f"{base_url}/camera_status", timeout=10)
+        if response.status_code == 200:
+            print("✅ Endpoint de estado de cámara funcionando")
+            print(f"📊 Respuesta: {response.json()}")
+        else:
+            print(f"❌ Error en endpoint de estado de cámara: {response.status_code}")
+            
         print("🎉 ¡Todas las pruebas pasaron exitosamente!")
         
     except requests.exceptions.ConnectionError:
