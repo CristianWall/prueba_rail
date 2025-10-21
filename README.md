@@ -9,6 +9,23 @@ Esta es una aplicación Flask que permite mostrar el feed de video de una cámar
 - **Control de cámara**: Botones para iniciar/detener la cámara
 - **Estado en tiempo real**: Verificación del estado de la cámara
 - **Optimizado para Railway**: Configuración lista para desplegar
+- **Modo demostración**: Funciona sin cámara real usando animaciones
+
+## ⚠️ Solución de Problemas de OpenCV
+
+Si encuentras errores de OpenCV como `libGL.so.1: cannot open shared object file`, la aplicación incluye dos versiones:
+
+### Versión Simple (Recomendada para Railway)
+- **Archivo**: `app_simple.py`
+- **Características**: Modo demostración con animaciones
+- **Ventajas**: Sin dependencias de OpenCV, funciona en cualquier entorno
+- **Uso**: Cambia `Procfile` para usar `python app_simple.py`
+
+### Versión Completa (Con OpenCV)
+- **Archivo**: `app.py`
+- **Características**: Cámara real con OpenCV
+- **Ventajas**: Funcionalidad completa de cámara
+- **Requisitos**: Dockerfile con dependencias del sistema
 
 ## 📁 Estructura del Proyecto
 
