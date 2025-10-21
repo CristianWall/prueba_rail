@@ -1,150 +1,108 @@
-# 🎥 Aplicación Flask - Cámara en Vivo
+# 🚀 Prueba de Despliegue Railway
 
-Esta es una aplicación Flask que permite mostrar el feed de video de una cámara web en tiempo real, optimizada para desplegarse en Railway.
+Una aplicación Flask simple para probar el despliegue automático en Railway conectado a GitHub.
 
-## 🚀 Características
+## 📋 Características
 
-- **Streaming en tiempo real**: Muestra el feed de video de la cámara web
-- **Interfaz web moderna**: Diseño responsive con controles intuitivos
-- **Control de cámara**: Botones para iniciar/detener la cámara
-- **Estado en tiempo real**: Verificación del estado de la cámara
-- **Optimizado para Railway**: Configuración lista para desplegar
-- **Modo demostración**: Funciona sin cámara real usando animaciones
+- ✅ Aplicación Flask básica
+- ✅ Interfaz web moderna y responsiva
+- ✅ API endpoints para verificar estado
+- ✅ Despliegue automático desde GitHub
+- ✅ Configuración optimizada para Railway
 
-## ⚠️ Solución de Problemas de OpenCV
-
-Si encuentras errores de OpenCV como `libGL.so.1: cannot open shared object file`, la aplicación incluye dos versiones:
-
-### Versión Simple (Recomendada para Railway)
-- **Archivo**: `app_simple.py`
-- **Características**: Modo demostración con animaciones
-- **Ventajas**: Sin dependencias de OpenCV, funciona en cualquier entorno
-- **Uso**: Cambia `Procfile` para usar `python app_simple.py`
-
-### Versión Completa (Con OpenCV)
-- **Archivo**: `app.py`
-- **Características**: Cámara real con OpenCV
-- **Ventajas**: Funcionalidad completa de cámara
-- **Requisitos**: Dockerfile con dependencias del sistema
-
-## 📁 Estructura del Proyecto
+## 🛠️ Estructura del Proyecto
 
 ```
 prueba_despliegue/
-├── app.py              # Aplicación Flask principal
+├── app.py                 # Aplicación Flask principal
+├── requirements.txt       # Dependencias de Python
+├── Procfile             # Configuración para Railway
 ├── templates/
-│   └── index.html      # Interfaz web
-├── requirements.txt    # Dependencias Python
-├── Procfile           # Configuración para Railway
-├── railway.toml       # Configuración específica de Railway
-├── runtime.txt        # Versión de Python
-└── README.md          # Este archivo
+│   └── index.html       # Página principal
+└── README.md           # Este archivo
 ```
 
-## 🛠️ Instalación Local
+## 🚀 Instrucciones de Despliegue
 
-1. **Clonar o navegar al directorio:**
-   ```bash
-   cd prueba_despliegue
-   ```
+### 1. Preparar el Repositorio
 
-2. **Instalar dependencias:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+1. Sube esta carpeta `prueba_despliegue` a tu repositorio de GitHub
+2. Asegúrate de que esté en la raíz del repositorio o en una carpeta específica
 
-3. **Ejecutar la aplicación:**
-   ```bash
-   python app.py
-   ```
+### 2. Configurar Railway
 
-4. **Abrir en el navegador:**
-   ```
-   http://localhost:5000
-   ```
+1. Ve a [Railway.app](https://railway.app)
+2. Inicia sesión con tu cuenta de GitHub
+3. Haz clic en "New Project"
+4. Selecciona "Deploy from GitHub repo"
+5. Elige tu repositorio
+6. Railway detectará automáticamente que es una aplicación Python/Flask
 
-## 🚀 Despliegue en Railway
+### 3. Configuración Automática
 
-### Método 1: Desde GitHub
-1. Sube este proyecto a un repositorio de GitHub
-2. Conecta tu repositorio a Railway
-3. Railway detectará automáticamente la configuración
+Railway detectará automáticamente:
+- ✅ `requirements.txt` para instalar dependencias
+- ✅ `Procfile` para ejecutar la aplicación
+- ✅ Puerto dinámico (Railway asignará automáticamente)
 
-### Método 2: Desde Railway CLI
-1. Instala Railway CLI:
-   ```bash
-   npm install -g @railway/cli
-   ```
+### 4. Variables de Entorno (Opcional)
 
-2. Inicia sesión:
-   ```bash
-   railway login
-   ```
+Si necesitas configurar variables de entorno:
+- Ve a tu proyecto en Railway
+- Selecciona "Variables"
+- Agrega las variables necesarias
 
-3. Despliega:
-   ```bash
-   railway up
-   ```
+## 🔧 Endpoints Disponibles
 
-## 🔧 Configuración
+- **`/`** - Página principal con interfaz web
+- **`/api/status`** - Estado de la aplicación (JSON)
+- **`/api/info`** - Información técnica (JSON)
 
-### Variables de Entorno
-- `PORT`: Puerto donde correrá la aplicación (por defecto: 5000)
+## 📱 Características de la Interfaz
 
-### Endpoints de la API
-- `GET /`: Página principal
-- `GET /video_feed`: Stream de video
-- `GET /start_camera`: Inicia la cámara
-- `GET /stop_camera`: Detiene la cámara
-- `GET /camera_status`: Estado de la cámara
-- `GET /health`: Health check para Railway
-
-## 📱 Uso
-
-1. **Iniciar la aplicación**: La aplicación se ejecutará automáticamente
-2. **Activar la cámara**: Haz clic en "Iniciar Cámara"
-3. **Ver el stream**: El video aparecerá en la página
-4. **Controlar la cámara**: Usa los botones para iniciar/detener
-5. **Verificar estado**: Usa el botón "Estado" para verificar el estado
-
-## ⚠️ Notas Importantes
-
-- **Cámara web**: La aplicación requiere una cámara web conectada
-- **Permisos**: Asegúrate de que la aplicación tenga permisos para acceder a la cámara
-- **Navegador**: Funciona mejor en navegadores modernos (Chrome, Firefox, Safari)
-- **HTTPS**: En producción, se recomienda usar HTTPS para acceder a la cámara
+- 🎨 Diseño moderno con gradientes
+- 📱 Totalmente responsiva
+- ⚡ Actualización automática del estado
+- 🔄 Indicadores de estado en tiempo real
 
 ## 🐛 Solución de Problemas
 
-### La cámara no se inicia
-- Verifica que la cámara esté conectada
-- Asegúrate de que no esté siendo usada por otra aplicación
-- Revisa los permisos del navegador
+### Error: "No module named 'flask'"
+- Verifica que `requirements.txt` esté en la raíz del proyecto
+- Railway debería instalar automáticamente las dependencias
 
-### Error de streaming
-- Verifica la conexión a internet
-- Revisa los logs de la aplicación
-- Intenta recargar la página
+### Error: "Port already in use"
+- Railway maneja automáticamente el puerto
+- El código ya está configurado para usar `PORT` de variables de entorno
 
-### Problemas de despliegue
-- Verifica que todas las dependencias estén en `requirements.txt`
-- Revisa la configuración de Railway
-- Consulta los logs de Railway
+### Error: "Template not found"
+- Verifica que la carpeta `templates` esté en la misma ubicación que `app.py`
 
-## 📞 Soporte
+## 🔄 Despliegue Automático
 
-Si encuentras problemas:
-1. Revisa los logs de la aplicación
-2. Verifica la configuración de Railway
-3. Asegúrate de que todas las dependencias estén instaladas
+Una vez configurado:
+1. Haz push a tu repositorio de GitHub
+2. Railway detectará los cambios automáticamente
+3. Desplegará la nueva versión sin intervención manual
 
-## 🔄 Actualizaciones
+## 📊 Monitoreo
 
-Para actualizar la aplicación:
-1. Modifica el código según sea necesario
-2. Actualiza las dependencias en `requirements.txt` si es necesario
-3. Redespliega en Railway
+Railway proporciona:
+- 📈 Métricas de uso
+- 📋 Logs en tiempo real
+- 🔄 Estado del servicio
+- 💰 Información de facturación
+
+## 🎯 Próximos Pasos
+
+Una vez que funcione esta prueba:
+1. Puedes integrar tu modelo YOLO
+2. Agregar más funcionalidades
+3. Configurar dominios personalizados
+4. Implementar CI/CD más avanzado
 
 ---
 
-**Desarrollado para Railway** 🚂
+**¡Listo para desplegar! 🚀**
+
+Simplemente sube este código a GitHub y conéctalo con Railway para un despliegue automático.
