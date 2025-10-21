@@ -239,10 +239,10 @@
                 
                 if (data.camera_available) {
                     statusDiv.className = 'status success';
-                    statusDiv.innerHTML = `✅ ${data.message}`;
+                    statusDiv.innerHTML = `✅ ${data.message}<br><small>${data.details || ''}</small>`;
                 } else {
                     statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `❌ ${data.message}<br><small>💡 En entornos de despliegue, la cámara puede no estar disponible</small>`;
+                    statusDiv.innerHTML = `❌ ${data.message}<br><small>${data.details || '💡 En entornos de despliegue, la cámara puede no estar disponible'}</small>`;
                 }
             } catch (error) {
                 console.error('Error verificando cámara:', error);
@@ -295,7 +295,10 @@
                     }
                 } else {
                     statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `❌ Error en la detección: ${data.error}<br><small>💡 Verifica que la cámara esté conectada y disponible</small>`;
+                    const errorMsg = data.camera_available === false ? 
+                        `❌ Cámara no disponible: ${data.error}` : 
+                        `❌ Error en la detección: ${data.error}`;
+                    statusDiv.innerHTML = `${errorMsg}<br><small>💡 ${data.details || 'Verifica que la cámara esté conectada y disponible'}</small>`;
                 }
             } catch (error) {
                 console.error('Error en captura:', error);

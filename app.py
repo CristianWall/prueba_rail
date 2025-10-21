@@ -19,23 +19,43 @@ def get_camera():
     global camera
     if camera is None:
         try:
-            camera = cv2.VideoCapture(0)
-            if not camera.isOpened():
-                # Intentar con diferentes índices de cámara
-                for i in range(1, 5):
+            # Intentar con diferentes índices de cámara
+            for i in range(5):  # 0, 1, 2, 3, 4
+                try:
                     camera = cv2.VideoCapture(i)
                     if camera.isOpened():
-                        break
-                else:
-                    camera = None
-                    return None
+                        # Probar si realmente puede leer
+                        success, frame = camera.read()
+                        if success:
+                            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                            print(f"Cámara encontrada en índice {i}")
+                            return camera
+                        else:
+                            camera.release()
+                            camera = None
+                except Exception as e:
+                    print(f"Error probando cámara {i}: {e}")
+                    if camera:
+                        camera.release()
+                        camera = None
+                    continue
             
-            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            # Si llegamos aquí, no se encontró ninguna cámara
+            camera = None
+            print("No se encontró ninguna cámara disponible")
+            return None
+            
         except Exception as e:
-            print(f"Error inicializando cámara: {e}")
+            print(f"Error general inicializando cámara: {e}")
             camera = None
             return None
+    
+    # Verificar que la cámara sigue funcionando
+    if camera and not camera.isOpened():
+        camera = None
+        return None
+        
     return camera
 
 def detect_faces(frame):
@@ -54,15 +74,18 @@ def generate_frames():
     camera = get_camera()
     if camera is None:
         # Generar frame de error si no hay cámara
+        print("No hay cámara disponible, generando frame de error")
         error_frame = create_error_frame("Cámara no disponible")
         while True:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + error_frame + b'\r\n')
     
+    print("Cámara disponible, iniciando stream")
     while True:
         try:
             success, frame = camera.read()
             if not success:
+                print("Error capturando frame, generando frame de error")
                 # Generar frame de error
                 error_frame = create_error_frame("Error capturando video")
                 yield (b'--frame\r\n'
@@ -134,7 +157,16 @@ def detect_face():
         if camera is None:
             return jsonify({
                 "success": False, 
-                "error": "Cámara no disponible. Verifica que esté conectada y no esté siendo usada por otra aplicación."
+                "error": "Cámara no disponible. Verifica que esté conectada y no esté siendo usada por otra aplicación.",
+                "camera_available": False
+            })
+        
+        # Verificar que la cámara sigue funcionando
+        if not camera.isOpened():
+            return jsonify({
+                "success": False, 
+                "error": "La cámara se cerró inesperadamente",
+                "camera_available": False
             })
         
         success, frame = camera.read()
@@ -148,17 +180,21 @@ def detect_face():
             return jsonify({
                 "success": True,
                 "face_count": face_count,
-                "image": img_base64
+                "image": img_base64,
+                "camera_available": True
             })
         else:
             return jsonify({
                 "success": False, 
-                "error": "No se pudo capturar imagen de la cámara"
+                "error": "No se pudo capturar imagen de la cámara",
+                "camera_available": False
             })
     except Exception as e:
+        print(f"Error en detect_face: {e}")
         return jsonify({
             "success": False, 
-            "error": f"Error en detección: {str(e)}"
+            "error": f"Error en detección: {str(e)}",
+            "camera_available": False
         })
 
 @app.route("/camera_status")
@@ -166,15 +202,41 @@ def camera_status():
     """Verificar estado de la cámara"""
     try:
         camera = get_camera()
+        if camera is None:
+            return jsonify({
+                "camera_available": False,
+                "message": "Cámara no disponible. No se encontró ninguna cámara conectada.",
+                "details": "Verifica que la cámara esté conectada y no esté siendo usada por otra aplicación."
+            })
+        
+        # Verificar que la cámara está abierta
+        if not camera.isOpened():
+            return jsonify({
+                "camera_available": False,
+                "message": "Cámara no disponible. La cámara se cerró inesperadamente.",
+                "details": "Intenta reiniciar la aplicación o verificar la conexión de la cámara."
+            })
+        
+        # Intentar leer un frame para verificar que funciona
         success, frame = camera.read()
-        return jsonify({
-            "camera_available": success,
-            "message": "Cámara funcionando" if success else "Cámara no disponible"
-        })
+        if success:
+            return jsonify({
+                "camera_available": True,
+                "message": "Cámara funcionando correctamente",
+                "details": f"Resolución: {frame.shape[1]}x{frame.shape[0]}"
+            })
+        else:
+            return jsonify({
+                "camera_available": False,
+                "message": "Cámara no disponible. No se pudo capturar imagen.",
+                "details": "La cámara está conectada pero no puede capturar imágenes."
+            })
     except Exception as e:
+        print(f"Error en camera_status: {e}")
         return jsonify({
             "camera_available": False,
-            "message": f"Error: {str(e)}"
+            "message": f"Error verificando cámara: {str(e)}",
+            "details": "Error interno del servidor al verificar la cámara."
         })
 
 if __name__ == "__main__":
