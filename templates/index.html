@@ -1,169 +1,22 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prueba de Despliegue Railway</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 3rem;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            margin: 2rem;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-        
-        .status-card {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin: 1rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: #4CAF50;
-            border-radius: 50%;
-            margin-right: 10px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            text-decoration: none;
-            border-radius: 25px;
-            margin: 0.5rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .info-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .info-label {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: #f0f0f0;
-        }
-        
-        .info-value {
-            color: #fff;
-        }
-    </style>
+    <title>HomePage</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Prueba de Despliegue Railway</h1>
-        <p class="subtitle">Aplicación Flask desplegada exitosamente</p>
-        
-        <div class="status-card">
-            <span class="status-indicator"></span>
-            <strong>Sistema Operativo:</strong> Funcionando correctamente
+    <section class="wrapper">
+        <div class="hero"></div>
+        <div class="content">
+            <h1 class="h1--scalingSize" data-text="An awesome title">Coding Craft YT</h1>
+            <input type="checkbox" id="switch">
+            <label for="switch">
+                <span><span class="icon">→</span> switch mode</span>
+            </label>
         </div>
-        
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">Framework</div>
-                <div class="info-value">Flask</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Plataforma</div>
-                <div class="info-value">Railway</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Estado</div>
-                <div class="info-value">Online</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Versión</div>
-                <div class="info-value">1.0.0</div>
-            </div>
-        </div>
-        
-        <div style="margin-top: 2rem;">
-            <a href="/api/status" class="btn">Ver Estado API</a>
-            <a href="/api/info" class="btn">Información Técnica</a>
-        </div>
-        
-        <div style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.8;">
-            <p>✅ Despliegue automático desde GitHub funcionando</p>
-            <p>🔗 Conectado a Railway con éxito</p>
-        </div>
-    </div>
-    
-    <script>
-        // Actualizar timestamp cada 30 segundos
-        setInterval(async () => {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                console.log('Estado actualizado:', data.timestamp);
-            } catch (error) {
-                console.log('Error al verificar estado:', error);
-            }
-        }, 30000);
-    </script>
+    </section>
 </body>
 </html>
