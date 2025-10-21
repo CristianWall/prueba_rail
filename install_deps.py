@@ -1,115 +1,61 @@
 #!/usr/bin/env python3
 """
-Script para instalar dependencias de manera más robusta
+Script para instalar dependencias de manera segura en Railway
 """
-
 import subprocess
 import sys
 import os
 
-def run_command(command, description):
+def run_command(cmd):
     """Ejecutar comando y manejar errores"""
-    print(f"🔧 {description}...")
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"✅ {description} completado")
+        result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
+        print(f"✅ {cmd}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error en {description}: {e}")
-        print(f"Salida de error: {e.stderr}")
+        print(f"❌ Error en {cmd}: {e}")
+        print(f"stderr: {e.stderr}")
         return False
 
 def install_dependencies():
-    """Instalar dependencias de manera incremental"""
-    print("🚀 Iniciando instalación de dependencias...")
+    """Instalar dependencias paso a paso"""
+    print("🚀 Instalando dependencias para Railway...")
     
-    # Actualizar pip primero
-    if not run_command(f"{sys.executable} -m pip install --upgrade pip", "Actualizando pip"):
+    # Actualizar pip
+    if not run_command("pip install --upgrade pip"):
         return False
     
     # Instalar dependencias básicas primero
     basic_deps = [
         "Flask==3.1.0",
         "gunicorn==23.0.0",
-        "Werkzeug==3.1.3",
-        "Jinja2==3.1.5",
-        "MarkupSafe==3.0.2",
-        "itsdangerous==2.2.0",
-        "click==8.1.8",
-        "blinker==1.9.0"
+        "numpy==1.26.4",
+        "Pillow==10.4.0",
+        "requests==2.31.0"
     ]
     
     for dep in basic_deps:
-        if not run_command(f"{sys.executable} -m pip install {dep}", f"Instalando {dep}"):
-            print(f"⚠️  Continuando sin {dep}")
+        if not run_command(f"pip install {dep}"):
+            print(f"⚠️  Falló instalación de {dep}, continuando...")
     
-    # Instalar numpy con versión específica
-    if not run_command(f"{sys.executable} -m pip install 'numpy>=1.26.0,<2.0.0'", "Instalando numpy"):
-        print("⚠️  Intentando instalar numpy sin restricciones de versión...")
-        run_command(f"{sys.executable} -m pip install numpy", "Instalando numpy (sin restricciones)")
+    # Instalar PyTorch CPU (más ligero)
+    if not run_command("pip install torch==2.4.0+cpu torchvision==0.19.0+cpu --index-url https://download.pytorch.org/whl/cpu"):
+        print("⚠️  Falló instalación de PyTorch CPU, intentando versión normal...")
+        run_command("pip install torch==2.4.0 torchvision==0.19.0")
     
-    # Instalar Pillow
-    if not run_command(f"{sys.executable} -m pip install 'Pillow>=10.0.0,<11.0.0'", "Instalando Pillow"):
-        print("⚠️  Intentando instalar Pillow sin restricciones de versión...")
-        run_command(f"{sys.executable} -m pip install Pillow", "Instalando Pillow (sin restricciones)")
+    # Instalar OpenCV
+    if not run_command("pip install opencv-python-headless==4.10.0.84"):
+        print("⚠️  Falló instalación de OpenCV, intentando versión más reciente...")
+        run_command("pip install opencv-python-headless")
     
-    # Instalar OpenCV (versión headless para mejor compatibilidad)
-    if not run_command(f"{sys.executable} -m pip install opencv-python-headless==4.10.0.84", "Instalando OpenCV"):
-        print("⚠️  Intentando instalar OpenCV sin versión específica...")
-        run_command(f"{sys.executable} -m pip install opencv-python-headless", "Instalando OpenCV (sin restricciones)")
+    # Instalar Ultralytics
+    if not run_command("pip install ultralytics==8.3.0"):
+        print("⚠️  Falló instalación de Ultralytics, intentando versión más reciente...")
+        run_command("pip install ultralytics")
     
-    # Instalar dependencias adicionales
-    additional_deps = ["colorama==0.4.6", "packaging==24.2"]
-    for dep in additional_deps:
-        run_command(f"{sys.executable} -m pip install {dep}", f"Instalando {dep}")
-    
-    print("🎉 Instalación de dependencias completada")
-    return True
-
-def test_imports():
-    """Probar que las importaciones funcionan"""
-    print("🧪 Probando importaciones...")
-    
-    try:
-        import flask
-        print("✅ Flask importado correctamente")
-    except ImportError as e:
-        print(f"❌ Error importando Flask: {e}")
-        return False
-    
-    try:
-        import cv2
-        print("✅ OpenCV importado correctamente")
-    except ImportError as e:
-        print(f"❌ Error importando OpenCV: {e}")
-        return False
-    
-    try:
-        import numpy
-        print("✅ NumPy importado correctamente")
-    except ImportError as e:
-        print(f"❌ Error importando NumPy: {e}")
-        return False
-    
-    try:
-        from PIL import Image
-        print("✅ Pillow importado correctamente")
-    except ImportError as e:
-        print(f"❌ Error importando Pillow: {e}")
-        return False
-    
-    print("🎉 Todas las importaciones funcionan correctamente")
+    print("✅ Instalación completada")
     return True
 
 if __name__ == "__main__":
-    print("🔧 Instalador de dependencias para detección de caras")
-    print("=" * 50)
-    
-    if install_dependencies():
-        if test_imports():
-            print("\n🎉 ¡Instalación exitosa! Todas las dependencias están funcionando.")
-        else:
-            print("\n⚠️  Instalación completada pero algunas importaciones fallaron.")
-    else:
-        print("\n❌ La instalación falló. Revisa los errores anteriores.")
-        sys.exit(1)
+    success = install_dependencies()
+    sys.exit(0 if success else 1)

@@ -1,8 +1,11 @@
 Flask==3.1.0
 gunicorn==23.0.0
-ultralytics
-torch
-torchvision
-opencv-python-headless
-numpy
-Pillow
+ultralytics==8.3.0
+torch==2.4.0
+torchvision==0.19.0
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+Pillow==10.4.0
+requests==2.31.0
+matplotlib==3.8.4
+scipy==1.11.4
