@@ -1,6 +1,7 @@
 from flask import Flask, render_template, Response
 import os
 import cv2
+import numpy as np
 
 app = Flask(__name__)
 
@@ -11,23 +12,58 @@ def get_camera():
     """Obtener la cámara"""
     global camera
     if camera is None:
-        camera = cv2.VideoCapture(0)
+        try:
+            camera = cv2.VideoCapture(0)
+            # Probar si la cámara funciona
+            success, frame = camera.read()
+            if not success:
+                camera = None
+        except:
+            camera = None
     return camera
+
+def create_demo_frame():
+    """Crear un frame de demostración cuando no hay cámara"""
+    # Crear un frame de 640x480 con un patrón
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    
+    # Agregar un patrón de colores
+    for i in range(0, 480, 20):
+        for j in range(0, 640, 20):
+            color = (i + j) % 255
+            frame[i:i+20, j:j+20] = [color, (color + 50) % 255, (color + 100) % 255]
+    
+    # Agregar texto
+    cv2.putText(frame, "Cámara no disponible en Railway", (50, 240), 
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv2.putText(frame, "Demo Frame - Funciona localmente", (50, 280), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
+    
+    return frame
 
 def generate_frames():
     """Generar frames para el stream de video"""
     camera = get_camera()
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            # Codificar frame como JPEG
-            ret, buffer = cv2.imencode('.jpg', frame)
+    
+    if camera is None:
+        # En Railway no hay cámara, mostrar frame de demo
+        while True:
+            demo_frame = create_demo_frame()
+            ret, buffer = cv2.imencode('.jpg', demo_frame)
             frame_bytes = buffer.tobytes()
-            
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+    else:
+        # Cámara disponible (desarrollo local)
+        while True:
+            success, frame = camera.read()
+            if not success:
+                break
+            else:
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame_bytes = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
 @app.route("/")
 def index():
