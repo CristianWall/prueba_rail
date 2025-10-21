@@ -22,6 +22,10 @@ def load_model():
     global model
     try:
         if os.path.exists(model_path):
+            # Configurar torch para cargar el modelo de manera segura
+            import torch
+            torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
+            
             model = YOLO(model_path)
             print(f"✅ Modelo cargado exitosamente desde: {model_path}")
             return True
@@ -30,7 +34,17 @@ def load_model():
             return False
     except Exception as e:
         print(f"❌ Error cargando el modelo: {e}")
-        return False
+        print("⚠️  Intentando cargar modelo con configuración alternativa...")
+        try:
+            # Intentar cargar con configuración alternativa
+            import torch
+            torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
+            model = YOLO(model_path)
+            print(f"✅ Modelo cargado con configuración alternativa")
+            return True
+        except Exception as e2:
+            print(f"❌ Error en configuración alternativa: {e2}")
+            return False
 
 def init_camera():
     """Inicializar la cámara"""
@@ -209,18 +223,16 @@ def detect_vest():
             'error': str(e)
         })
 
-@app.route("/health")
-def health():
-    """Endpoint de salud"""
-    model_status = "loaded" if model is not None else "not_loaded"
-    camera_status = "available" if camera is not None and camera.isOpened() else "not_available"
-    
-    return jsonify({
-        'status': 'healthy',
-        'model': model_status,
-        'camera': camera_status,
-        'timestamp': time.time()
-    })
+
+# Configurar entorno para Railway
+try:
+    from railway_fix import configure_environment, fix_torch_loading, optimize_for_railway
+    configure_environment()
+    fix_torch_loading()
+    optimize_for_railway()
+    print("✅ Configuración de Railway aplicada")
+except Exception as e:
+    print(f"⚠️  Configuración de Railway no disponible: {e}")
 
 # Inicializar modelo y cámara al importar
 print("🚀 Iniciando aplicación de detección de chalecos...")
