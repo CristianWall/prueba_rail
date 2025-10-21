@@ -14,3 +14,8 @@ packaging==24.2
 opencv-python-headless
 numpy
 Pillow
+
+# Dependencias para YOLO y detección de chalecos
+ultralytics
+torch
+torchvision

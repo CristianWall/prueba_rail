@@ -91,35 +91,44 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎥 Cámara en Tiempo Real</h1>
+        <h1>🦺 Detección de Chalecos de Seguridad</h1>
         
         <div class="video-container">
-            <video id="videoElement" autoplay muted playsinline></video>
+            <img id="videoStream" src="/video_feed" alt="Stream de video" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
         </div>
         
         <div id="status" class="status" style="display: none;"></div>
         
+        <div id="detectionInfo" style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #c3e6c3; display: none;">
+            <h3 style="margin-top: 0; color: #155724;">🔍 Detecciones Activas</h3>
+            <div id="detectionList"></div>
+        </div>
+        
         <div class="controls">
-            <button id="startBtn" class="btn btn-primary">📹 Iniciar Cámara</button>
-            <button id="stopBtn" class="btn btn-danger" style="display: none;">⏹️ Detener Cámara</button>
+            <button id="startBtn" class="btn btn-primary">📹 Iniciar Detección</button>
+            <button id="stopBtn" class="btn btn-danger" style="display: none;">⏹️ Detener Detección</button>
             <a href="/" class="btn btn-secondary">🏠 Volver al Inicio</a>
         </div>
         
         <div style="background: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #bee5eb;">
-            <h3 style="margin-top: 0; color: #0c5460;">ℹ️ Información</h3>
+            <h3 style="margin-top: 0; color: #0c5460;">ℹ️ Información del Sistema</h3>
             <p style="color: #0c5460; margin: 0;">
-                <strong>Esta aplicación usa la cámara de tu dispositivo.</strong><br>
-                Haz clic en "Iniciar Cámara" y permite el acceso cuando el navegador lo solicite.
+                <strong>🦺 Detección de Chalecos de Seguridad en Tiempo Real</strong><br>
+                • <span style="color: #28a745;">Verde</span>: Persona CON chaleco de seguridad<br>
+                • <span style="color: #dc3545;">Rojo</span>: Persona SIN chaleco de seguridad<br>
+                • El sistema detecta automáticamente y muestra la confianza de cada detección
             </p>
         </div>
     </div>
 
     <script>
-        const videoElement = document.getElementById('videoElement');
+        const videoStream = document.getElementById('videoStream');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const statusDiv = document.getElementById('status');
-        let stream = null;
+        const detectionInfo = document.getElementById('detectionInfo');
+        const detectionList = document.getElementById('detectionList');
+        let isStreaming = false;
 
         function showStatus(message, type) {
             statusDiv.style.display = 'block';
@@ -127,50 +136,116 @@
             statusDiv.textContent = message;
         }
 
-        async function startCamera() {
-            try {
-                showStatus('Solicitando acceso a la cámara...', 'success');
+        function updateDetectionInfo(detections) {
+            if (detections && detections.length > 0) {
+                detectionInfo.style.display = 'block';
+                detectionList.innerHTML = '';
                 
-                // Solicitar acceso a la cámara
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    },
-                    audio: false
+                detections.forEach((detection, index) => {
+                    const detectionItem = document.createElement('div');
+                    detectionItem.style.cssText = `
+                        padding: 8px;
+                        margin: 5px 0;
+                        border-radius: 5px;
+                        background: ${detection.class === 'con_chaleco' ? '#d4edda' : '#f8d7da'};
+                        border: 1px solid ${detection.class === 'con_chaleco' ? '#c3e6cb' : '#f5c6cb'};
+                        color: ${detection.class === 'con_chaleco' ? '#155724' : '#721c24'};
+                    `;
+                    
+                    const status = detection.class === 'con_chaleco' ? '✅ CON CHALECO' : '❌ SIN CHALECO';
+                    const confidence = (detection.confidence * 100).toFixed(1);
+                    
+                    detectionItem.innerHTML = `
+                        <strong>Detección ${index + 1}:</strong> ${status}<br>
+                        <small>Confianza: ${confidence}%</small>
+                    `;
+                    
+                    detectionList.appendChild(detectionItem);
                 });
+            } else {
+                detectionInfo.style.display = 'none';
+            }
+        }
+
+        async function startDetection() {
+            try {
+                showStatus('Iniciando detección de chalecos...', 'success');
                 
-                // Mostrar el stream en el video
-                videoElement.srcObject = stream;
+                // Verificar estado de la cámara
+                const response = await fetch('/camera_status');
+                const cameraData = await response.json();
                 
-                showStatus('✅ Cámara iniciada correctamente', 'success');
+                if (!cameraData.camera_available) {
+                    showStatus('❌ Cámara no disponible. Verifica que esté conectada.', 'error');
+                    return;
+                }
+                
+                // Iniciar el stream de video
+                videoStream.src = '/video_feed?' + new Date().getTime();
+                isStreaming = true;
+                
+                showStatus('✅ Detección de chalecos iniciada correctamente', 'success');
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'inline-block';
                 
+                // Simular actualización de detecciones (en una implementación real, esto vendría del servidor)
+                setInterval(async () => {
+                    if (isStreaming) {
+                        try {
+                            const healthResponse = await fetch('/health');
+                            const healthData = await healthResponse.json();
+                            
+                            if (healthData.model === 'loaded') {
+                                // Aquí podrías implementar una actualización en tiempo real de las detecciones
+                                // Por ahora, mostramos un mensaje de estado
+                                console.log('Sistema funcionando correctamente');
+                            }
+                        } catch (error) {
+                            console.log('Error verificando estado:', error);
+                        }
+                    }
+                }, 2000);
+                
             } catch (error) {
-                console.error('Error accediendo a la cámara:', error);
+                console.error('Error iniciando detección:', error);
                 showStatus('❌ Error: ' + error.message, 'error');
             }
         }
 
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-                videoElement.srcObject = null;
-                
-                showStatus('Cámara detenida', 'success');
-                startBtn.style.display = 'inline-block';
-                stopBtn.style.display = 'none';
-            }
+        function stopDetection() {
+            isStreaming = false;
+            videoStream.src = '';
+            
+            showStatus('Detección detenida', 'success');
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            detectionInfo.style.display = 'none';
         }
 
         // Event listeners
-        startBtn.addEventListener('click', startCamera);
-        stopBtn.addEventListener('click', stopCamera);
+        startBtn.addEventListener('click', startDetection);
+        stopBtn.addEventListener('click', stopDetection);
 
-        // Detener la cámara cuando se cierra la página
-        window.addEventListener('beforeunload', stopCamera);
+        // Verificar estado del sistema al cargar la página
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (data.model === 'not_loaded') {
+                    showStatus('⚠️ Modelo de detección no cargado. La aplicación funcionará sin detección.', 'error');
+                } else if (data.camera === 'not_available') {
+                    showStatus('⚠️ Cámara no disponible. Conecta una cámara para usar la detección.', 'error');
+                } else {
+                    showStatus('✅ Sistema listo para detección de chalecos', 'success');
+                }
+            } catch (error) {
+                showStatus('❌ Error verificando estado del sistema', 'error');
+            }
+        });
+
+        // Detener la detección cuando se cierra la página
+        window.addEventListener('beforeunload', stopDetection);
     </script>
 </body>
 </html>
