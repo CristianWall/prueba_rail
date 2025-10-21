@@ -1,0 +1,12 @@
+# Ignorar Dockerfile con OpenCV
+Dockerfile
+
+# Ignorar archivos de desarrollo
+*.pyc
+__pycache__/
+*.log
+.env
+.git/
+.gitignore
+
+# Usar solo Dockerfile.simple
